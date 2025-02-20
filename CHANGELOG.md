@@ -98,6 +98,15 @@ FROM node:18-alpine
 - Uses node:18-alpine again to keep the runtime environment lightweight.
 
 ```
+# Create a non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+```
+
+- Creates a user group (appgroup) and a new user (appuser).
+- This improves security by preventing the container from running as root.
+
+
+```
 WORKDIR /app
 ```
 
@@ -110,6 +119,21 @@ COPY --from=builder /app/dist /app/dist
 
 - Copies only the dist folder from the previous build stage (builder).
 - This ensures that the final image does not contain unnecessary files like node_modules, source code, or build tools.
+
+
+```
+# Change ownership of the working directory
+RUN chown -R appuser:appgroup /app
+```
+
+- Ensures that the /app directory is owned by appuser.
+
+```
+# Switch to the non-root user
+USER appuser
+```
+
+- Runs the application as appuser, improving security.
 
 ```
 RUN npm install -g serve
@@ -202,6 +226,12 @@ git push origin feature/devops
 #### 2. Click on Compare & pull request
 #### 3. Add a tile and description
 #### 4. Submit the pull request 
+
+## NOTE:
+- Scan your Docker images for vulnerabilities using Docker Hub, Trivy, or AWS ECR.
+- This multi-stage build reduces the final image size by excluding unnecessary dependencies.
+- Running as a non-root user enhances security.
+- Alpine Linux is used to keep the image lightweight.
 
 
 ## The online shop frontend is now fully Dockerized and has been successfully deployed on EC2
